@@ -2,30 +2,30 @@
 
 ## 배경
 
-* 최근 쇼핑몰 입점이 늘어나면서 쇼핑몰 어드민의 엑셀 다운로드 요청이 급증했고, 이로 인해 서버가 불안정해지는 문제가 발생
-* 이를 해결하기 위해 Kafka Consumer를 활용한 비동기 엑셀 생성 방식으로 전환한 결과 서버 장애는 해소
-* 하지만 비동기 처리 특성상 고객이 다운로드 완료 시점을 즉시 알 수 없어, 고객 문의(CS)가 오히려 증가하는 새로운 문제가 발생
+- 최근 쇼핑몰 입점이 늘어나면서 쇼핑몰 어드민의 엑셀 다운로드 요청이 급증했고, 이로 인해 서버가 불안정해지는 문제가 발생
+- 이를 해결하기 위해 Kafka Consumer를 활용한 비동기 엑셀 생성 방식으로 전환한 결과 서버 장애는 해소
+- 하지만 비동기 처리 특성상 고객이 다운로드 완료 시점을 즉시 알 수 없어, 고객 문의(CS)가 오히려 증가하는 새로운 문제가 발생
 
 ## 요구사항 정리
 
-* 엑셀 다운로드 완료 알림
-* 다양한 알림 유형 지원
-    - 주문발생, 클레임발생, 1:1문의, 상품승인, 상품문의, FDS 탐지
-    - 어드민 모바일 푸시(FCM)
-* 대상별 알림 발송
-    - 몰별 알림, 운영자별 알림, 전체 알림, 파트너 알림
-* 오프라인 지원 및 영속성
-    - 클라이언트 미접속 시에도 알림 보관
-    - Dooray Stream과 같은 타임라인 형태의 저장소 구성
+- 엑셀 다운로드 완료 알림
+- 다양한 알림 유형 지원
+  - 주문발생, 클레임발생, 1:1문의, 상품승인, 상품문의, FDS 탐지
+  - 어드민 모바일 푸시(FCM)
+- 대상별 알림 발송
+  - 몰별 알림, 운영자별 알림, 전체 알림, 파트너 알림
+- 오프라인 지원 및 영속성
+  - 클라이언트 미접속 시에도 알림 보관
+  - Dooray Stream과 같은 타임라인 형태의 저장소 구성
 
 ## 전제조건
 
-* **EDA 기반 구현** - 이벤트 발생 시 Message Broker를 통해 실시간으로 클라이언트에 메시지 전달
-* **도메인 간 결합도 최소화** - 각 도메인은 메시지 발행만 담당하며, Notification 시스템과의 커플링 방지
-* **MSA 서비스 독립성** - 다른 MSA 서버들과 완전히 독립적으로 동작
-* **Reactive 프로그래밍** - 비동기 논블로킹 방식으로 구현
-* **독립적인 서비스 구성** - Spring Cloud Gateway를 거치지 않는 별도 도메인 서버 구성
-* **인증 및 캐싱 전략** - Admin 토큰/정보 기반 메시지 대상 구분, 로컬 캐시 적극 활용
+- **EDA 기반 구현** - 이벤트 발생 시 Message Broker를 통해 실시간으로 클라이언트에 메시지 전달
+- **도메인 간 결합도 최소화** - 각 도메인은 메시지 발행만 담당하며, Notification 시스템과의 커플링 방지
+- **MSA 서비스 독립성** - 다른 MSA 서버들과 완전히 독립적으로 동작
+- **Reactive 프로그래밍** - 비동기 논블로킹 방식으로 구현
+- **독립적인 서비스 구성** - Spring Cloud Gateway를 거치지 않는 별도 도메인 서버 구성
+- **인증 및 캐싱 전략** - Admin 토큰/정보 기반 메시지 대상 구분, 로컬 캐시 적극 활용
 
 ## 사전조사
 
@@ -35,8 +35,8 @@
 
 **HTTP Polling은** 클라이언트가 서버에 주기적으로 HTTP 요청을 보내서 새로운 데이터나 상태 변화를 확인하는 통신 방식
 
-
 ### 장점
+
 - 구현이 간단하고 직관적
 - 방화벽이나 프록시 환경에서도 잘 동작
 - HTTP 표준을 그대로 사용
@@ -71,8 +71,8 @@ polling과 통신방법은 같으며 요청을 받은 서버는 메세지를 전
 
 <img src="https://miro.medium.com/max/1400/1*zG7Jyeq02JRAN6Wz6gs15g.png" width="80%"  alt="SSE"/>
 
-* 클라이언트는 메세지를 구독하고 서버는 이벤트 발생시 클라이언트로 푸시한다. (서버 -> 클라 단방향)
-* response header의 content-type: text/event-stream이 추가되어야 하며 response body의 format은 아래와 같다.
+- 클라이언트는 메세지를 구독하고 서버는 이벤트 발생시 클라이언트로 푸시한다. (서버 -> 클라 단방향)
+- response header의 content-type: text/event-stream이 추가되어야 하며 response body의 format은 아래와 같다.
 
 ### response payload
 
@@ -108,9 +108,9 @@ https://developer.mozilla.org/ko/docs/Web/API/EventSource/EventSource
 
 <img src="https://kouzie.github.io/assets/springboot/springboot_websocket3.png" width="80%"  alt="WS"/>
 
-* 2011년 표준화되었으며 양방향 통신
-* http://가 아닌 ws://프로토콜을 사용하며 80(ws://), 443(wss://)포트 사용
-* handshake는 위와 동일하게 http통신으로 이루어지며 handshake수립후에는 ws로 양방향 통신한다
+- 2011년 표준화되었으며 양방향 통신
+- http://가 아닌 ws://프로토콜을 사용하며 80(ws://), 443(wss://)포트 사용
+- handshake는 위와 동일하게 http통신으로 이루어지며 handshake수립후에는 ws로 양방향 통신한다
 
 ### 장점
 
@@ -124,6 +124,7 @@ https://developer.mozilla.org/ko/docs/Web/API/EventSource/EventSource
 https://developer.mozilla.org/ko/docs/Web/API/WebSocket
 
 ## 구현
+
 repo : https://github.com/chk386/notifications
 
 ### 기술스택
@@ -165,15 +166,14 @@ The Sinks categories are:
 <a href="https://projectreactor.io/docs/core/release/reference/#processors">Processors and Sinks</a>
 
 ### Sinks.Many< T >.multicast().onBackpressureBuffer()
+
 <img src="https://projectreactor.io/docs/core/release/api/reactor/core/publisher/doc-files/marbles/sinkWarmup.svg" width="80%"  alt="multicast"/>
 
 [Sinks.many().multicast().onBackpressureBuffer()](https://projectreactor.io/docs/core/release/api/reactor/core/publisher/Sinks.MulticastSpec.html)
 
- 
 ### 시스템 구성
 
 ![구성도](https://raw.githubusercontent.com/chk386/notifications/master/assets/diagram.png)
-
 
 ## 코드 설명
 
@@ -181,9 +181,9 @@ The Sinks categories are:
 
 1. git clone https://github.com/chk386/notifications
 2. docker-compose up
-    1. localhost:8081 : kafka UI
-    2. localhost:9092 : broker
-    3. localhost:2181 : zookeeper
+   1. localhost:8081 : kafka UI
+   2. localhost:9092 : broker
+   3. localhost:2181 : zookeeper
 3. gradle boot run (또는 idea에서 NotificationsApplication.kt 실행
 
 ### nhn cloud
@@ -202,7 +202,7 @@ docker image push ${본인의 dockerhub ID}/notification
 ```shell
 # 인스턴스에 ssh 서버접속 후 실행
 docker-compose -f docker-compose-nhncloud.yml up
-docker run -d -e "SPRING_PROFILES_ACTIVE=cloud" -p 8080:8080 chk386/notification 
+docker run -d -e "SPRING_PROFILES_ACTIVE=cloud" -p 8080:8080 chk386/notification
 
 # 카프카 토픽 & 메세지 생성시
 docker exec -it kafka /bin/bsh
@@ -220,18 +220,20 @@ docker exec -it kafka /bin/bsh
 ```
 
 3. 데모 페이지
-    1. http://localhost:8080/sse.html
-    2. http://localhost:8080/websocket.html
+   1. http://localhost:8080/sse.html
+   2. http://localhost:8080/websocket.html
 
 ## 생각해봐야 할 것들
+
 - 유실을 허용한다면 redis pub/sub도 괜찮은 방법인듯 하다
 - 현재 백오피스 고객이 2000을 넘지 않기에 Notification서버 1대로 운영이 충분히 가능
 - 만약 동접이 더 많아지면 웹소켓 서버를 여러대 두어 라우팅 전략 짜야함
 - reactive 드라이버를 지원하는 mongoDB의 change stream기능도 고려해볼 필요가 있다. 실시간성과 영속성을 모두
-만족 [링크](https://docs.mongodb.com/manual/changeStreams)
+  만족 [링크](https://docs.mongodb.com/manual/changeStreams)
 - 앱 서드 파티 개발사에 notification api 개방
 
 ### 참고자료
+
 - What is Http : https://www.concurrency.com/blog/june-2019/why-http-is-not-suitable-for-iot-applications
 - Keep-Alive : https://velog.io/@yvvyoon/keep-alive
 - Long Polling : https://medium.com/ably-realtime/websockets-vs-long-polling-55bdf09a7268
